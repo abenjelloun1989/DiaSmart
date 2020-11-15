@@ -1,111 +1,167 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Dia Smart',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Dia Smart Home Page'),
+          primarySwatch: Colors.purple,
+          buttonColor: Colors.purple,
+          buttonTheme:
+              const ButtonThemeData(textTheme: ButtonTextTheme.primary)),
+      home: MyHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class MyHomePage extends StatelessWidget {
+  MyHomePage({Key key}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  Widget _dialogBuilder(BuildContext context, MealItem mealItem) {
+    ThemeData localTheme = Theme.of(context);
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+    return SimpleDialog(
+      contentPadding: EdgeInsets.zero,
+      children: [
+        Image(
+          image: AssetImage('assets/images/' + mealItem.meal + '.jpg'),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                mealItem.meal,
+                style: localTheme.textTheme.headline4,
+              ),
+              Text(
+                mealItem.mealTime.toIso8601String(),
+                style: localTheme.textTheme.subtitle1
+                    .copyWith(fontStyle: FontStyle.italic),
+              ),
+              SizedBox(
+                height: 16.0,
+              ),
+              Text(
+                'Carbo : ' + mealItem.carbo.toString() + 'g',
+                style: localTheme.textTheme.bodyText1,
+              ),
+              Text(
+                'Insulin : ' + mealItem.insulin.toString() + 'u',
+                style: localTheme.textTheme.bodyText1,
+              ),
+              Text(
+                'GluLevel : ' + mealItem.gluLevel.toString() + 'mg/dL',
+                style: localTheme.textTheme.bodyText1,
+              ),
+              SizedBox(
+                height: 16.0,
+              ),
+              Wrap(
+                alignment: WrapAlignment.end,
+                children: [
+                  FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Close')),
+                  RaisedButton(
+                    onPressed: () {},
+                    child: const Text('Good'),
+                  )
+                ],
+              )
+            ],
+          ),
+        )
+      ],
+    );
+  }
 
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  Widget _listItemBuilder(BuildContext context, int index) {
+    return new GestureDetector(
+      onTap: () => showDialog(
+          context: context,
+          builder: (context) => _dialogBuilder(context, _meals[index])),
+      child: Container(
+        padding: const EdgeInsets.only(left: 16.0),
+        alignment: Alignment.centerLeft,
+        child: Text(_meals[index].meal,
+            style: Theme.of(context).textTheme.headline5),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text('Meals'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
+      body: ListView.builder(
+        itemCount: _meals.length,
+        itemExtent: 60.0,
+        itemBuilder: _listItemBuilder,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+
+class MealItem {
+  final int id;
+  final String meal;
+  final DateTime mealTime;
+  final double carbo;
+  final double insulin;
+  final double gluLevel;
+  final double ratio;
+
+  MealItem(
+      {this.id,
+      this.meal,
+      this.mealTime,
+      this.carbo,
+      this.insulin,
+      this.gluLevel,
+      this.ratio});
+}
+
+final List<MealItem> _meals = <MealItem>[
+  MealItem(
+      id: 1,
+      meal: 'breakfast',
+      mealTime: DateTime.now(),
+      carbo: 10,
+      insulin: 1,
+      gluLevel: 100,
+      ratio: 0.1),
+  MealItem(
+      id: 2,
+      meal: 'lunch',
+      mealTime: DateTime.now(),
+      carbo: 20,
+      insulin: 2,
+      gluLevel: 200,
+      ratio: 0.2),
+  MealItem(
+      id: 3,
+      meal: 'dinner',
+      mealTime: DateTime.now(),
+      carbo: 30,
+      insulin: 3,
+      gluLevel: 300,
+      ratio: 0.3),
+  MealItem(
+      id: 4,
+      meal: 'other',
+      mealTime: DateTime.now(),
+      carbo: 40,
+      insulin: 4,
+      gluLevel: 400,
+      ratio: 0.4),
+];
