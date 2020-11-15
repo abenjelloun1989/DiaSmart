@@ -9,6 +9,7 @@ namespace DiaSmartApi.Models
         public DateTime MealTime { get; set; }
         public double Carbo { get; set; }
         public double Insulin { get; set; }
+        public double GluLevel { get; set; }
         public double Ratio { get; set; }
     }
 
