@@ -1,12 +1,7 @@
-
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using DiaSmartApi.Models;
+using DiaSmartApi.Services;
 
 namespace DiaSmartApi.Controllers
 {
@@ -14,25 +9,23 @@ namespace DiaSmartApi.Controllers
     [ApiController]
     public class MealItemsController : ControllerBase
     {
-        private readonly MealItemContext _context;
+        private readonly MealItemsService _mealItemsService;
 
-        public MealItemsController(MealItemContext context)
+        public MealItemsController(MealItemsService mealItemsService)
         {
-            _context = context;
+            _mealItemsService = mealItemsService;
         }
 
         // GET: api/MealItems
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MealItem>>> GetMealItems()
-        {
-            return await _context.MealItems.ToListAsync();
-        }
+        public ActionResult<List<MealItem>> Get() =>
+            _mealItemsService.Get();
 
         // GET: api/MealItems/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<MealItem>> GetMealItem(long id)
+        [HttpGet("{id:length(24)}")]
+        public ActionResult<MealItem> Get(string id)
         {
-            var mealItem = await _context.MealItems.FindAsync(id);
+            var mealItem = _mealItemsService.Get(id);
 
             if (mealItem == null)
             {
@@ -42,67 +35,45 @@ namespace DiaSmartApi.Controllers
             return mealItem;
         }
 
-        // PUT: api/MealItems/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutMealItem(long id, MealItem mealItem)
+        // POST: api/MealItems
+        [HttpPost]
+        public ActionResult<MealItem> Create(MealItem mealItemIn)
         {
+            var mealItem = _mealItemsService.Create(mealItemIn);
+
+            return CreatedAtAction("Get", new { id = mealItem.Id }, mealItem);
+        }
+
+        // PUT: api/MealItems/5
+        [HttpPut("{id:length(24)}")]
+        public IActionResult Update(string id, MealItem mealItemIn)
+        {
+            var mealItem = _mealItemsService.Get(id);
+
             if (id != mealItem.Id)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(mealItem).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MealItemExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _mealItemsService.Update(id, mealItemIn);
 
             return NoContent();
         }
 
-        // POST: api/MealItems
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<MealItem>> PostMealItem(MealItem mealItem)
-        {
-            _context.MealItems.Add(mealItem);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetMealItem", new { id = mealItem.Id }, mealItem);
-        }
 
         // DELETE: api/MealItems/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMealItem(long id)
+        [HttpDelete("{id:length(24)}")]
+        public IActionResult DeleteMealItem(string id)
         {
-            var mealItem = await _context.MealItems.FindAsync(id);
+            var mealItem = _mealItemsService.Get(id);
             if (mealItem == null)
             {
                 return NotFound();
             }
 
-            _context.MealItems.Remove(mealItem);
-            await _context.SaveChangesAsync();
+            _mealItemsService.Remove(mealItem.Id);
 
             return NoContent();
-        }
-
-        private bool MealItemExists(long id)
-        {
-            return _context.MealItems.Any(e => e.Id == id);
         }
     }
 }
